@@ -17,11 +17,11 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/properties', propertyRouter);
 app.use('/api/v1/users', userRouter);
 
-app.use(errorHandler);
-
 app.use('*', (req, res) => {
-    throw new ApiError('Did not found', 404);
+  throw new ApiError('Did not found', 404);
 });
+
+app.use(errorHandler);
 
 app.listen(port, () => console.log(`Server is running on port ${port}`))
 

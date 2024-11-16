@@ -7,7 +7,21 @@ export const getProperties = async (req, res) => {
 };
 
 export const getPropertiesWithPagination = async (req, res) => {
-  let { page = 1, limit = 10} = req.query;
+  let { page = 1, limit = 10, lat = null, lng = null, radius = 50 } = req.query;
+  if (lat !== null || lng !== null) {
+    const properties = await Property.find({
+      location: {
+        $geoWithin: {
+          $centerSphere: [
+            [ lng, lat ],
+            radius / 6378.1 // km to radians conversion
+          ]
+        }
+      }
+    });
+    return res.status(200).json({properties});
+  }
+
   page = parseInt(page);
   limit = parseInt(limit);
   const properties = await Property.find().skip((page-1)*limit).limit(limit);
