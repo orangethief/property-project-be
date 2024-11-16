@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { getPropertiesWithPagination, getPropertyById, deleteProperty, createProperty, updateProperty } from '../controllers/properties.js';
+import asyncHandler from '../middleware/asyncHandler.js';
 
-const propertyRouter = Router();
+const propertyRouter = Router({ mergeParams: true });
 
-propertyRouter.route('/').get(getPropertiesWithPagination).post(createProperty);
-propertyRouter.route('/:id').put(updateProperty).delete(deleteProperty).get(getPropertyById);
+propertyRouter.route('/').get(asyncHandler(getPropertiesWithPagination)).post(asyncHandler(createProperty));
+propertyRouter.route('/:id').put(asyncHandler(updateProperty)).delete(asyncHandler(deleteProperty)).get(asyncHandler(getPropertyById));
 
 export default propertyRouter;

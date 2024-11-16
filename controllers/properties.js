@@ -1,4 +1,5 @@
 import Property from '../models/Property.js';
+import ApiError from '../utils/ApiError.js';
 
 export const getProperties = async (req, res) => {
   const properties = await Property.find();
@@ -12,13 +13,17 @@ export const getPropertiesWithPagination = async (req, res) => {
   const properties = await Property.find().skip((page-1)*limit).limit(limit);
   const totalPropertiesCount = await Property.countDocuments();
   const totalPages = Math.ceil(totalPropertiesCount / limit);
-  res.status(200).json({properties, totalPropertiesCount, totalPages, currentPage: page, itemsPerPage: limit});
 
+  res.status(200).json({properties, totalPropertiesCount, totalPages, currentPage: page, itemsPerPage: limit});
 }
 
 export const getPropertyById = async (req, res) => {
   const { id } = req.params;
   const property = await Property.findById(id);
+  if (!property) {
+    throw new ApiError('Not found', 404);
+  }
+
   res.status(200).json(property);
 }
 
@@ -27,21 +32,27 @@ export const createProperty = async (req, res) => {
     body: { title, type, location, price, description, images, userId},
   } = req;
   const property = await Property.create({ title, type, location, price, description, images, userId});
+
   res.status(201).json(property);
-  };
+};
 
 export const updateProperty = async (req, res) => {
   const {
     body: {title, type, location, price, description, images, userId},
     params: { id},
   } = req;
-  const property = await Property.findByIdAndUpdate(id, {title, type, location, price, description, images, userId});
+  const property = await Property.findByIdAndUpdate(id, { title, type, location, price, description, images, userId }, { new :true });
+
   res.status(200).json(property);
 };
 
 export const deleteProperty = async (req,res) => {
   const { id } = req.params;
-  await Property.findByIdAndDelete(id);
-  res.status(200).json({message: 'Property deleted successfully'});
+  if (!await Property.findById(id)) {
+    throw new ApiError('Not found', 404);
+  }
 
+  await Property.findByIdAndDelete(id);
+
+  res.status(200).json({message: 'Property deleted successfully'});
 };
