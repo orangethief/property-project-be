@@ -2,13 +2,21 @@ import Property from '../models/Property.js';
 import ApiError from '../utils/ApiError.js';
 
 export const getProperties = async (req, res) => {
-  const properties = await Property.find();
-  res.status(200).json(properties);
+  const properties = await Property.find().select({
+    "_id": 1,
+    "title" : 1,
+    "type" : 1,
+    "location" : 1,
+    "price" : 1,
+    "images" : 1,
+    "userId" : 1,
+  });
+  res.status(200).json({properties});
 };
 
 export const getPropertiesWithPagination = async (req, res) => {
-  let { page = 1, limit = 10, lat = null, lng = null, radius = 50 } = req.query;
-  if (lat !== null || lng !== null) {
+  let { page = 1, limit = 10, lat = null, lng = null, radius = 50, paginated = true } = req.query;
+  if (lat !== null && lng !== null) {
     const properties = await Property.find({
       location: {
         $geoWithin: {
@@ -20,6 +28,10 @@ export const getPropertiesWithPagination = async (req, res) => {
       }
     });
     return res.status(200).json({properties});
+  }
+
+  if (paginated == 'false') {
+    return getProperties(req, res);
   }
 
   page = parseInt(page);
